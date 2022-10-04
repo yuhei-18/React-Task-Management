@@ -6,8 +6,40 @@ import Card from "./Card";
 const Main = () => {
   const [data, setData] = useState(dummyData);
 
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const { source, destination } = result;
+
+    if (source.droppableId !== destination.droppableId) {
+      // 別カラムにタスクを移動した場合
+      const sourceColIndex = data.findIndex((e) => e.id === source.droppableId);
+      const destinationColIndex = data.findIndex(
+        (e) => e.id === destination.droppableId
+      );
+      const sourceCol = data[sourceColIndex];
+      const destinationCol = data[destinationColIndex];
+      const sourceTask = [...sourceCol.tasks];
+      const destinationTask = [...destinationCol.tasks];
+      const [removed] = sourceTask.splice(source.index, 1);
+      destinationTask.splice(destination.index, 0, removed);
+      data[sourceColIndex].tasks = sourceTask;
+      data[destinationColIndex].tasks = destinationTask;
+      setData(data);
+    } else {
+      // 同じカラム内でのタスクの入れ替える場合
+      const sourceColIndex = data.findIndex((e) => e.id === source.droppableId);
+      const sourceCol = data[sourceColIndex];
+      const sourceTasks = [...sourceCol.tasks];
+      const [removed] = sourceTasks.splice(source.index, 1);
+      sourceTasks.splice(destination.index, 0, removed);
+      data[sourceColIndex].tasks = sourceTasks;
+      setData(data);
+    }
+  };
+
   return (
-    <DragDropContext>
+    <DragDropContext onDragEnd={onDragEnd}>
       <div className="trello">
         {data.map((section) => (
           <Droppable
@@ -45,6 +77,7 @@ const Main = () => {
                       )}
                     </Draggable>
                   ))}
+                  {provided.placeholder}
                 </div>
               </div>
             )}
